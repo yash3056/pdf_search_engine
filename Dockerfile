@@ -21,7 +21,7 @@ COPY . .
 RUN uv sync --frozen
 
 # Download NLTK data using uv run
-RUN uv run python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+RUN uv run python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab'); nltk.download('stopwords')"
 
 # Create necessary directories
 RUN mkdir -p data cache logs
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Default command - run API server directly
-CMD ["uv", "run", "python", "run_api.py"]
+CMD ["uv", "run", "python", "run_ui.py"]
