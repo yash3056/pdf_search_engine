@@ -1,0 +1,15 @@
+Sample PDF Document for Testing
+
+This document contains information about machine learning.
+Machine learning is a subset of artificial intelligence.
+It involves algorithms that can learn from data.
+Deep learning is a type of machine learning.
+Natural language processing uses machine learning.
+Computer vision also relies on machine learning algorithms.
+
+Page 2: More Content
+
+Python is a popular programming language for data science.
+Libraries like scikit-learn make machine learning accessible.
+TensorFlow and PyTorch are deep learning frameworks.
+Data preprocessing is crucial for model performance.
