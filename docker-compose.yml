@@ -1,12 +1,11 @@
 version: '3.8'
 
 services:
-  pdf-search-engine:
+  pdf-search-api:
     build: .
-    container_name: pdf-search-engine
+    container_name: pdf-search-api
     ports:
       - "8000:8000"  # API
-      - "8501:8501"  # Streamlit UI
     volumes:
       - ./data:/app/data
       - ./cache:/app/cache
@@ -24,6 +23,27 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    command: ["uv", "run", "python", "run_api.py"]
+
+  pdf-search-ui:
+    build: .
+    container_name: pdf-search-ui
+    ports:
+      - "8501:8501"  # Streamlit UI
+    volumes:
+      - ./data:/app/data
+      - ./cache:/app/cache
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=production
+      - API_HOST=pdf-search-api  # Connect to API service
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    depends_on:
+      pdf-search-api:
+        condition: service_healthy
+    command: ["uv", "run", "python", "run_ui.py"]
 
   # Optional: Redis for caching (if needed for scaling)
   redis:

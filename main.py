@@ -145,20 +145,32 @@ class PDFSearchApplication:
         try:
             logger.info(f"Starting API server on {config.API_HOST}:{config.API_PORT}")
             
-            cmd = [
-                sys.executable, "-m", "uvicorn",
-                "src.api:app",
-                "--host", config.API_HOST,
-                "--port", str(config.API_PORT),
-                "--workers", str(config.API_WORKERS),
-                "--log-level", config.LOG_LEVEL.lower()
-            ]
+            # Check if we're in a uv environment
+            import shutil
+            if shutil.which("uv"):
+                cmd = [
+                    "uv", "run", "uvicorn",
+                    "src.api:app",
+                    "--host", config.API_HOST,
+                    "--port", str(config.API_PORT),
+                    "--workers", str(config.API_WORKERS),
+                    "--log-level", config.LOG_LEVEL.lower()
+                ]
+            else:
+                cmd = [
+                    sys.executable, "-m", "uvicorn",
+                    "src.api:app",
+                    "--host", config.API_HOST,
+                    "--port", str(config.API_PORT),
+                    "--workers", str(config.API_WORKERS),
+                    "--log-level", config.LOG_LEVEL.lower()
+                ]
             
             self.api_process = subprocess.Popen(cmd, cwd=Path.cwd())
             logger.success("API server started")
             
             # Wait a moment for the server to start
-            time.sleep(3)
+            time.sleep(5)  # Increased wait time
             
         except Exception as e:
             logger.error(f"Failed to start API server: {e}")
@@ -167,17 +179,29 @@ class PDFSearchApplication:
     def start_ui_server(self):
         """Start the Streamlit UI in a separate process."""
         try:
-            ui_port = config.API_PORT + 1
+            ui_port = 8501  # Streamlit default port
             logger.info(f"Starting UI server on port {ui_port}")
             
-            cmd = [
-                sys.executable, "-m", "streamlit", "run",
-                "src/ui.py",
-                "--server.port", str(ui_port),
-                "--server.address", "0.0.0.0",
-                "--server.headless", "true",
-                "--browser.gatherUsageStats", "false"
-            ]
+            # Check if we're in a uv environment
+            import shutil
+            if shutil.which("uv"):
+                cmd = [
+                    "uv", "run", "streamlit", "run",
+                    "src/ui.py",
+                    "--server.port", str(ui_port),
+                    "--server.address", "0.0.0.0",
+                    "--server.headless", "true",
+                    "--browser.gatherUsageStats", "false"
+                ]
+            else:
+                cmd = [
+                    sys.executable, "-m", "streamlit", "run",
+                    "src/ui.py",
+                    "--server.port", str(ui_port),
+                    "--server.address", "0.0.0.0",
+                    "--server.headless", "true",
+                    "--browser.gatherUsageStats", "false"
+                ]
             
             self.ui_process = subprocess.Popen(cmd, cwd=Path.cwd())
             logger.success(f"UI server started on http://localhost:{ui_port}")
@@ -259,12 +283,11 @@ class PDFSearchApplication:
             health_thread.start()
             
             # Print startup information
-            ui_port = config.API_PORT + 1
             print("\n" + "="*50)
             print("🔍 PDF Search Engine Started Successfully!")
             print("="*50)
             print(f"📡 API Server: http://localhost:{config.API_PORT}")
-            print(f"📱 Web Interface: http://localhost:{ui_port}")
+            print(f"📱 Web Interface: http://localhost:8501")
             print(f"📚 API Documentation: http://localhost:{config.API_PORT}/docs")
             print(f"📁 Data Directory: {config.DATA_DIR}")
             print(f"🧠 Embedding Model: {config.EMBEDDING_MODEL}")

@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 import time
 import json
+import os
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import asyncio
@@ -90,7 +91,13 @@ class SearchInterface:
     """Main search interface class."""
     
     def __init__(self):
-        self.api_base_url = f"http://localhost:{config.API_PORT}"
+        # Determine API base URL based on environment
+        api_host = os.getenv("API_HOST", "localhost")
+        if api_host == "pdf-search-api":  # Docker service name
+            self.api_base_url = f"http://{api_host}:{config.API_PORT}"
+        else:
+            self.api_base_url = f"http://localhost:{config.API_PORT}"
+        
         self.results_per_page = config.RESULTS_PER_PAGE
         self.init_session_state()
     
