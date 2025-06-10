@@ -20,3 +20,4 @@ streamlit>=1.45.1
 uvicorn[standard]>=0.34.3
 reportlab>=4.4.1
 pytest>=8.4.0
+pysqlite3-binary
