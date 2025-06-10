@@ -79,9 +79,9 @@ class PDFSearchApplication:
             
             # Try to load existing index
             if self.search_engine.load_existing_index():
-                logger.info("Loaded existing search index")
+                logger.info("✅ Loaded existing search index")
             else:
-                logger.info("No existing index found")
+                logger.info("No existing index found, will start auto-indexing after API starts")
             
             return True
             

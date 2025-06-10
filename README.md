@@ -36,6 +36,8 @@ A production-ready hybrid search engine for PDF documents that combines vector s
    ```bash
    docker-compose up -d
    ```
+   
+   **📚 Auto-Indexing**: PDFs in the `data/` directory are automatically indexed on startup!
 
 3. **Access the application**:
    - **Web Interface**: http://localhost:8501
@@ -59,8 +61,12 @@ A production-ready hybrid search engine for PDF documents that combines vector s
    ```bash
    python main.py
    ```
+   
+   **📚 Auto-Indexing**: PDFs are automatically indexed when the application starts!
 
 ## API Usage
+
+**🚀 Auto-Indexing**: When the API starts, it automatically indexes all PDF files in the `data/` directory. No manual indexing needed!
 
 ### Search PDFs
 ```bash
@@ -73,7 +79,7 @@ curl -X POST "http://localhost:8000/search" \
      -d '{"query": "machine learning", "max_results": 10}'
 ```
 
-### Index Documents
+### Index Documents (Optional - only if you add new PDFs)
 ```bash
 curl -X POST "http://localhost:8000/index"
 ```

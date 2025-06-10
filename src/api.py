@@ -78,7 +78,40 @@ async def lifespan(app: FastAPI):
         
         # Try to load existing index
         if not search_engine.load_existing_index():
-            logger.info("No existing index found, will need to index documents")
+            logger.info("🔄 No existing index found, starting automatic indexing...")
+            
+            # Auto-index PDFs on startup
+            try:
+                # Check if data directory exists and has PDFs
+                if config.DATA_DIR.exists():
+                    pdf_documents = await pdf_processor.process_directory(config.DATA_DIR)
+                    
+                    if pdf_documents:
+                        logger.info(f"📚 Found {len(pdf_documents)} PDF documents, indexing...")
+                        success = await search_engine.index_documents(pdf_documents)
+                        
+                        if success:
+                            total_chunks = sum(len(doc.chunks) for doc in pdf_documents)
+                            logger.success(f"✅ Auto-indexed {len(pdf_documents)} PDFs with {total_chunks} chunks")
+                            logger.info("🔍 Search engine is now ready for queries!")
+                        else:
+                            logger.error("❌ Failed to auto-index documents")
+                    else:
+                        logger.warning("⚠️ No PDF documents found in data directory")
+                        logger.info(f"📁 Place PDF files in: {config.DATA_DIR}")
+                        logger.info("💡 Then restart the API or call POST /index to index them")
+                else:
+                    logger.warning(f"⚠️ Data directory does not exist: {config.DATA_DIR}")
+                    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+                    logger.info(f"📁 Created data directory: {config.DATA_DIR}")
+                    logger.info("💡 Add PDF files and restart the API or call POST /index")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error during auto-indexing: {e}")
+                # Don't fail startup if indexing fails
+        else:
+            logger.info("✅ Loaded existing search index")
+            logger.info("🔍 Search engine is ready for queries!")
         
         logger.success("PDF search engine API started successfully")
         
