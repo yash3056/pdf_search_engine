@@ -76,42 +76,56 @@ async def lifespan(app: FastAPI):
         search_engine = HybridSearchEngine()
         pdf_processor = PDFProcessor()
         
-        # Try to load existing index
-        if not search_engine.load_existing_index():
-            logger.info("🔄 No existing index found, starting automatic indexing...")
-            
-            # Auto-index PDFs on startup
-            try:
-                # Check if data directory exists and has PDFs
-                if config.DATA_DIR.exists():
+        # Force fresh indexing every time (ignore existing index)
+        logger.info("🔄 Starting fresh indexing from data directory...")
+        logger.info("🗑️ Any existing index will be cleared and rebuilt...")
+        
+        # Auto-index PDFs on startup
+        try:
+            # Check if data directory exists and has PDFs
+            if config.DATA_DIR.exists():
+                logger.info(f"📁 Scanning directory: {config.DATA_DIR}")
+                
+                # List PDF files found
+                pdf_files = list(config.DATA_DIR.glob("*.pdf"))
+                logger.info(f"📄 Found {len(pdf_files)} PDF files:")
+                for pdf_file in pdf_files:
+                    logger.info(f"  📄 {pdf_file.name}")
+                
+                if pdf_files:
+                    logger.info(f"📚 Processing {len(pdf_files)} PDF documents...")
                     pdf_documents = await pdf_processor.process_directory(config.DATA_DIR)
                     
                     if pdf_documents:
-                        logger.info(f"📚 Found {len(pdf_documents)} PDF documents, indexing...")
+                        logger.info(f"🔄 Starting fresh indexing of {len(pdf_documents)} processed documents...")
                         success = await search_engine.index_documents(pdf_documents)
                         
                         if success:
                             total_chunks = sum(len(doc.chunks) for doc in pdf_documents)
-                            logger.success(f"✅ Auto-indexed {len(pdf_documents)} PDFs with {total_chunks} chunks")
+                            logger.success(f"✅ Fresh indexing complete!")
+                            logger.success(f"📚 Indexed: {len(pdf_documents)} PDFs")
+                            logger.success(f"📝 Created: {total_chunks} searchable chunks")
                             logger.info("🔍 Search engine is now ready for queries!")
                         else:
-                            logger.error("❌ Failed to auto-index documents")
+                            logger.error("❌ Failed to index documents")
                     else:
-                        logger.warning("⚠️ No PDF documents found in data directory")
-                        logger.info(f"📁 Place PDF files in: {config.DATA_DIR}")
-                        logger.info("💡 Then restart the API or call POST /index to index them")
+                        logger.warning("⚠️ No PDF documents could be processed")
+                        logger.info("💡 Check if PDF files are readable and valid")
                 else:
-                    logger.warning(f"⚠️ Data directory does not exist: {config.DATA_DIR}")
-                    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-                    logger.info(f"📁 Created data directory: {config.DATA_DIR}")
-                    logger.info("💡 Add PDF files and restart the API or call POST /index")
-                    
-            except Exception as e:
-                logger.error(f"❌ Error during auto-indexing: {e}")
-                # Don't fail startup if indexing fails
-        else:
-            logger.info("✅ Loaded existing search index")
-            logger.info("🔍 Search engine is ready for queries!")
+                    logger.warning("⚠️ No PDF files found in data directory")
+                    logger.info(f"📁 Place PDF files in: {config.DATA_DIR}")
+                    logger.info("💡 Then restart the API to index them")
+            else:
+                logger.warning(f"⚠️ Data directory does not exist: {config.DATA_DIR}")
+                config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+                logger.info(f"📁 Created data directory: {config.DATA_DIR}")
+                logger.info("💡 Add PDF files and restart the API to index them")
+                
+        except Exception as e:
+            logger.error(f"❌ Error during fresh indexing: {e}")
+            import traceback
+            logger.error(f"📋 Traceback: {traceback.format_exc()}")
+            # Don't fail startup if indexing fails
         
         logger.success("PDF search engine API started successfully")
         

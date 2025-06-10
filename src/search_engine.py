@@ -174,11 +174,10 @@ class HybridSearchEngine:
             True if indexing successful
         """
         try:
-            logger.info(f"Starting indexing of {len(pdf_documents)} PDF documents...")
+            logger.info(f"Starting fresh indexing of {len(pdf_documents)} PDF documents...")
             
-            # Clear existing data
-            self.document_chunks = []
-            self.chunk_lookup = {}
+            # Clear existing indexes first
+            self.clear_existing_index()
             
             # Collect all chunks
             all_chunks = []
@@ -650,7 +649,44 @@ class HybridSearchEngine:
         self.search_cache.clear()
         logger.info("Search cache cleared")
     
-    def __del__(self):
-        """Cleanup resources."""
-        if hasattr(self, 'executor'):
-            self.executor.shutdown(wait=True)
+    def clear_existing_index(self):
+        """Clear all existing indexes to start fresh."""
+        try:
+            logger.info("🗑️ Clearing existing indexes...")
+            
+            # Clear in-memory data
+            self.document_chunks = []
+            self.chunk_lookup = {}
+            self.search_cache.clear()
+            
+            # Clear ChromaDB collection
+            if self.collection:
+                try:
+                    # Delete all documents in the collection
+                    collection_count = self.collection.count()
+                    if collection_count > 0:
+                        logger.info(f"🗑️ Clearing {collection_count} documents from vector index...")
+                        self.collection.delete()  # Delete all documents
+                        logger.info("✅ Vector index cleared")
+                    else:
+                        logger.info("🔍 Vector index already empty")
+                except Exception as e:
+                    logger.warning(f"Could not clear vector index: {e}")
+            
+            # Clear BM25 index
+            self.bm25_index = None
+            bm25_path = Path(config.CACHE_DIR) / "bm25_index.pkl"
+            if bm25_path.exists():
+                bm25_path.unlink()
+                logger.info("🗑️ BM25 index file deleted")
+            
+            # Clear metadata
+            metadata_path = Path(config.CACHE_DIR) / "index_metadata.json"
+            if metadata_path.exists():
+                metadata_path.unlink()
+                logger.info("🗑️ Index metadata deleted")
+            
+            logger.success("✅ All existing indexes cleared")
+            
+        except Exception as e:
+            logger.error(f"Error clearing indexes: {e}")
