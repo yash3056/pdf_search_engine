@@ -1,0 +1,22 @@
+# PDF Search Engine Dependencies
+# Converted from pyproject.toml
+
+# PyTorch packages (CPU version)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.7.0
+torchvision>=0.22.0
+
+# Core dependencies
+aiofiles>=24.1.0
+chromadb>=0.6.3
+fastapi>=0.115.12
+loguru>=0.7.3
+nltk>=3.9.1
+pydantic>=2.11.5
+pypdf>=5.6.0
+rank-bm25>=0.2.2
+sentence-transformers>=4.1.0
+streamlit>=1.45.1
+uvicorn[standard]>=0.34.3
+reportlab>=4.4.1
+pytest>=8.4.0
