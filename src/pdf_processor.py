@@ -26,6 +26,10 @@ try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
     nltk.download('stopwords', quiet=True)
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab')
 
 
 @dataclass
